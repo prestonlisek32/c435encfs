@@ -1,0 +1,31 @@
+#!/bin/sh
+
+set -eu
+
+readonly cmd_name="$(basename -- "$0")"
+readonly user_id="$(id -u)"
+readonly dirname="$(dirname -- "$0")"
+readonly c435encfs_rel="../src/c435encfs.py"
+readonly c435encfs="${dirname}/${c435encfs_rel}"
+readonly actualdir="${dirname}/actualdir"
+readonly mountpoint="${dirname}/mountpoint"
+
+if [ $# != 0 ]
+then
+	printf '%s: user error: takes no arguments\n' "$cmd_name" >&2
+	exit 1
+fi
+
+if [ "$user_id" != 0 ]
+then
+	printf '%s: user error: must be run as root, try sudo\n' \
+		"$cmd_name" >&2
+	exit 1
+fi
+
+if ! [ -e "$mountpoint" ]
+then
+	mkdir "$mountpoint"
+fi
+
+python3 "$c435encfs" "$actualdir" "$mountpoint"

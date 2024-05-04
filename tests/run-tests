@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -eu
+
+readonly dirname="$(dirname -- "$0")"
+
+ls -1 -- "${dirname}/../src" | while read -r filepath
+do
+	case "$(basename -- "$filepath")" in
+		test_*.py)
+			python3 "${dirname}/../src/${filepath}"
+			;;
+	esac
+done

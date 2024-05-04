@@ -1,0 +1,68 @@
+#!/bin/sh
+
+set -eu
+
+readonly cmd_name="$(basename -- "$0")"
+
+if [ $# != 0 ]
+then
+	printf '%s: user error: takes no arguments\n' "$cmd_name" >&2
+	exit 1
+fi
+
+# Move to the workspace.
+cd "$(dirname -- "$0")"
+
+if ! [ -e mountpoint ]
+then
+	mkdir mountpoint
+fi
+
+# Clear the data.
+rm -rf actualdir
+mkdir actualdir
+
+# Mount the FUSE filesystem in the background.
+./c435encfs &
+
+ls > /dev/null
+ls mountpoint > /dev/null
+
+mkdir mountpoint/testdir
+ls > /dev/null
+
+# This tests symlink().
+ln -s mountpoint/testdir mountpoint/testsymlink
+ls > /dev/null
+
+# This tests unlink().
+unlink mountpoint/testsymlink
+
+# This tests rmdir().
+rmdir mountpoint/testdir
+
+# This tests create().
+touch mountpoint/asdf.txt
+
+# This tests write().
+echo "asdf" > mountpoint/asdf.txt
+
+# This tests cat().
+cat mountpoint/asdf.txt > /dev/null
+
+# This tests unlink().
+rm mountpoint/asdf.txt
+
+# This tests multiple files.
+touch a.txt b.txt c.txt d.txt
+
+# This tests rename().
+mv a.txt e.txt
+
+rm b.txt c.txt d.txt e.txt
+
+# Unmount the filesystem. Unfortunately, a small delay is needed or
+# umount will not get the message that the filesystem has even been
+# mounted.
+sleep 1
+umount mountpoint || fusermount -u mountpoint

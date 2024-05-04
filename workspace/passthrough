@@ -1,0 +1,24 @@
+#!/bin/sh
+
+set -eu
+
+readonly user_id="$(id -u)"
+readonly dirname="$(dirname -- "$0")"
+readonly passthrough_rel="../templates/fuse/python-fuse-sample-master/passthrough.py"
+readonly passthrough="${dirname}/${passthrough_rel}"
+readonly actualdir="${dirname}/actualdir"
+readonly mountpoint="${dirname}/mountpoint"
+
+if [ $# != 0 ]
+then
+	echo "user error: takes no arguments" >&2
+	exit 1
+fi
+
+if [ "$user_id" != 0 ]
+then
+	echo "user error: must be run as root, try sudo" >&2
+	exit 1
+fi
+
+python3 "$passthrough" "$actualdir" "$mountpoint"
